@@ -1,0 +1,93 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Mayor {
+  id                  String    @id @default(cuid())
+  name                String
+  email               String    @unique
+  password            String
+  mustChangePassword  Boolean   @default(false)
+  subscriptionStatus  Status    @default(PENDING)
+  subscriptionEndDate DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  managedVillages     Village[] @relation("MayorToVillages")
+}
+
+model Village {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  mayorId   String
+  mayor     Mayor    @relation("MayorToVillages", fields: [mayorId], references: [id], onDelete: Cascade) // MODIFICAT: Adăugat onDelete: Cascade
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([mayorId])
+}
+
+model Farmer {
+  id                String    @id @default(cuid())
+  name              String
+  companyCode       String    @unique
+  village           String
+  email             String?   @unique
+  phone             String?
+  password          String
+  mustChangePassword  Boolean   @default(false)
+  color             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  ownedParcels      Parcel[]  @relation("Owner")
+  cultivatedParcels Parcel[]  @relation("Cultivator")
+}
+
+model Parcel {
+  id            String    @id @default(cuid())
+  village       String
+  area          Float
+  coordinates   Json
+  ownerId       String?
+  cultivatorId  String?
+  owner         Farmer?   @relation("Owner", fields: [ownerId], references: [id], onDelete: SetNull)
+  cultivator    Farmer?   @relation("Cultivator", fields: [cultivatorId], references: [id], onDelete: SetNull)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([village])
+  @@index([ownerId])
+  @@index([cultivatorId])
+}
+
+model LogEntry {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+  logType   LogType
+  actor     String?
+  action    String
+  details   String?  @db.Text
+  
+  @@index([timestamp])
+  @@index([logType])
+  @@index([actor])
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum LogType {
+  ASSIGNMENT
+  USER_ACTION
+  SYSTEM
+  PARCEL_UPLOAD
+  ADMIN_ACTION // ADAUGAT
+}
