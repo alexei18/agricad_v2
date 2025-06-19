@@ -1,7 +1,7 @@
 // src/app/farmer/account/page.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react'; // Adaugă Suspense aici
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { getFarmerById, changeFarmerPassword, Farmer } from '@/services/farmers'; // Asigură-te că Farmer e tipul corect
+import { getFarmerById, changeFarmerPassword, Farmer } from '@/services/farmers';
 import { getParcelsByOwner, getParcelsByCultivator, Parcel } from '@/services/parcels';
 import { useFarmerVillageContext } from '@/components/layout/FarmerLayoutClient'; // Pentru operationalVillages
 
@@ -40,12 +40,12 @@ const t = {
     notAvailable: "N/A",
 };
 
-// Tip pentru user-ul din sesiune (ar trebui definit global în next-auth.d.ts)
 type SessionUser = { id?: string; name?: string | null; email?: string | null; image?: string | null; role?: string; village?: string };
 
-export default function FarmerAccountPage() {
+// Creează o componentă separată care conține logica principală și use-client
+function FarmerAccountContent() {
     const { data: session, status: sessionStatus } = useSession();
-    const { operationalVillages, isFarmContextLoading: isOpVillagesLoading } = useFarmerVillageContext(); // Preluăm satele operaționale
+    const { operationalVillages, isFarmContextLoading: isOpVillagesLoading } = useFarmerVillageContext();
     const { toast } = useToast();
 
     const [farmerDetails, setFarmerDetails] = useState<Omit<Farmer, 'password'> | null>(null);
@@ -78,7 +78,7 @@ export default function FarmerAccountPage() {
                 setIsLoadingDetails(false);
             }
         } else if (sessionStatus !== 'loading') {
-            setIsLoadingDetails(false); // Finalizează încărcarea dacă sesiunea nu e ok
+            setIsLoadingDetails(false);
         }
     }, [sessionStatus, typedUser?.id]);
 
@@ -111,8 +111,8 @@ export default function FarmerAccountPage() {
             const result = await changeFarmerPassword(
                 typedUser.id,
                 { oldPassword: oldPassword, newPassword: newPassword },
-                typedUser.id, // Actorul este agricultorul însuși
-                true // Este o auto-schimbare, deci parola veche e necesară
+                typedUser.id,
+                true
             );
 
             if (result.success) {
@@ -191,5 +191,20 @@ export default function FarmerAccountPage() {
                 </Card>
             </div>
         </div>
+    );
+}
+
+// Exportă componenta principală înfășurată în Suspense
+export default function FarmerAccountPageWrapper() {
+    return (
+        <Suspense fallback={
+            // Poți folosi un loader mai complex aici dacă dorești
+            <div className="flex-1 p-4 sm:p-6 space-y-6">
+                <Card className="shadow-md"><CardHeader><Skeleton className="h-6 w-1/3 mb-1" /><Skeleton className="h-4 w-1/2" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-5 w-3/4" /><Skeleton className="h-5 w-2/3" /><Skeleton className="h-5 w-3/5" /><Skeleton className="h-10 w-full mt-4" /></CardContent></Card>
+                <Card className="shadow-md"><CardHeader><Skeleton className="h-6 w-1/3 mb-1" /><Skeleton className="h-4 w-1/2" /></CardHeader><CardContent className="space-y-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-1/3 mt-2" /></CardContent></Card>
+            </div>
+        }>
+            <FarmerAccountContent />
+        </Suspense>
     );
 }
