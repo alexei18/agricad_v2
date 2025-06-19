@@ -1,11 +1,10 @@
 // src/app/farmer/account/layout.tsx
+// Fără Suspense aici, deoarece este gestionat la nivel superior în /farmer/layout.tsx
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { FarmerLayoutClient } from '@/components/layout/FarmerLayoutClient';
 import { unstable_noStore as noStore } from 'next/cache';
-import { Suspense } from 'react'; // <--- Importă Suspense aici
-import { Loader2 } from 'lucide-react';
 
 const PAGE_SPECIFIC_NAME = "Contul Meu";
 
@@ -38,16 +37,8 @@ export default function FarmerAccountLayout({
     children: React.ReactNode;
 }>) {
     return (
-        // <--- Adaugă Suspense aici
-        <Suspense fallback={
-            <div className="flex h-screen items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin" /> {/* Asigură-te că Loader2 este importat */}
-                <span className="ml-2">Se încarcă layout-ul contului...</span>
-            </div>
-        }>
-            <FarmerLayoutClient>
-                {children}
-            </FarmerLayoutClient>
-        </Suspense>
+        <FarmerLayoutClient>
+            {children}
+        </FarmerLayoutClient>
     );
 }
