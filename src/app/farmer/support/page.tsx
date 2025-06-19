@@ -24,7 +24,7 @@ const t = {
     faq3Answer: "În secțiunea 'Export Date' din meniu, puteți selecta satele, tipul parcelelor, coloanele dorite și formatul de export.",
     feedbackCardTitle: "Feedback despre Platformă",
     feedbackDescription: "Dacă aveți sugestii generale pentru îmbunătățirea platformei AgriCad, ne puteți scrie.",
-    emailPlatformSupport: "agricad.suport@gmail.com",
+    emailPlatformSupport: "agricad.md@gmail.com",
     platformSupportLabel: "Suport Platformă AgriCad:",
     generalPlatformInfoFor: "Informații pentru",
     notAvailable: "Nespecificat"

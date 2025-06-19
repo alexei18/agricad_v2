@@ -22,8 +22,8 @@ const t = {
   faq3Answer: "Dacă sunteți primar, contactați administratorul platformei pentru resetarea parolei. Dacă sunteți agricultor, contactați primăria dvs.",
   feedbackCardTitle: "Feedback și Sugestii",
   feedbackDescription: "Opinia dvs. este importantă! Trimiteți-ne sugestii pentru a îmbunătăți platforma.",
-  emailSupport: "agricad.suport@gmail.com", // Email exemplu
-  phoneSupport: "+373 XX XXX XXX", // Telefon exemplu
+  emailSupport: "agricad.md@gmail.com", // Email exemplu
+  phoneSupport: "+373 68 512 814", // Telefon exemplu
   generalPlatformInfoFor: "Informații generale pentru",
   notAvailable: "Nespecificat"
 };

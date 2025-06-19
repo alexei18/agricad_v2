@@ -293,7 +293,7 @@ const LandingPage: React.FC = () => {
               Feedback-ul și ideile dumneavoastră sunt valoroase! Dacă aveți sugestii pentru noi funcționalități sau îmbunătățiri, apăsați butonul de mai jos:
             </p>
             <a
-              href="mailto:agricad.suport@gmail.com"
+              href="mailto:agricad.md@gmail.com"
               className={`inline-flex items-center justify-center bg-[${colors.primaryAccent}] text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-[${colors.primaryAccentDarker}] active:scale-95 transition-all duration-200 transform hover:scale-105`}
             >
               <Send className="mr-2 h-5 w-5" /> Scrie un email

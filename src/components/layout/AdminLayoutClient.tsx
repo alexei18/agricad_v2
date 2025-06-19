@@ -16,9 +16,7 @@ export function AdminLayoutClient({ children }: { children: React.ReactNode }) {
         <div className="flex min-h-screen">
             {/* Aici ar veni componenta ta de sidebar (client-side) */}
             {/* <AdminSidebar /> */}
-            <main className="flex-1 p-8">
                 {children}
-            </main>
         </div>
     );
 }

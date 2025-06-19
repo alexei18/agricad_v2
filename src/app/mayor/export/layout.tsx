@@ -44,15 +44,3 @@ export async function generateMetadata(): Promise<Metadata> {
         description: pageDescription,
     };
 }
-
-export default function MayorExportLayout({
-    children,
-}: Readonly<{
-    children: React.ReactNode;
-}>) {
-    return (
-        <MayorLayoutClient> {/* Înfășurăm copiii cu provider-ul de context al primarului */}
-            {children}
-        </MayorLayoutClient>
-    );
-}

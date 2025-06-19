@@ -25,12 +25,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <NextAuthProvider>
           {/* AICI e important: CustomTourProvider învelește children */}
-          <CustomTourProvider>
+
             {children}
             <Toaster />
-          </CustomTourProvider>
         </NextAuthProvider>
       </body>
     </html>
   );
 }
+
+
