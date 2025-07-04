@@ -55,6 +55,7 @@ interface FarmerTableMeta {
   actorId: string;
   actorRole: 'admin' | 'mayor';
   currentMayorSelectedVillageForEdit?: string | null;
+  readOnly?: boolean;
 }
 
 export const columns: ColumnDef<Omit<Farmer, 'password'>>[] = [
@@ -141,7 +142,8 @@ export function FarmerTable({
   actorId: initialActorId,
   actorRole,
   villageFilter,
-}: {
+  readOnly = false,
+}: { // Aceasta este definiția tipului de props
   refreshKey?: number;
   actorId?: string;
   actorRole: 'admin' | 'mayor';
