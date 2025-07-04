@@ -1,21 +1,17 @@
 // src/app/admin/farmers/page.tsx
 import type { Metadata } from 'next';
-import dynamic from 'next/dynamic'; // Import dynamic for client-side loading
+// REMOVE: import dynamic from 'next/dynamic'; // No longer needed here
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users } from 'lucide-react';
 
-// Import the skeleton components from loading.tsx
-import { FarmerTableSkeleton } from './loading';
+// REMOVE: import { FarmerTableSkeleton } from './loading'; // No longer needed directly here for dynamic loading
+// REMOVE: const DynamicFarmerTable = ... // This entire block moves to the Client Wrapper
 
-// Define the FarmerTable as a dynamic import with ssr: false
-// This ensures it's only rendered on the client, avoiding server-side issues with browser-specific APIs.
-const DynamicFarmerTable = dynamic(() => import('./components/farmer-table').then(mod => mod.FarmerTable), {
-  ssr: false, // CRUCIAL: Do NOT render this component on the server
-  loading: () => <FarmerTableSkeleton readOnly={true} />, // Show this while the client component loads
-});
+// IMPORT the new Client Component wrapper
+import { ClientFarmerTableWrapper } from './components/client-farmer-table-wrapper'; // Adjust path if necessary
 
 export const metadata: Metadata = {
-  title: 'Gestionare Fermieri', // Metadata for SEO and browser tab title
+  title: 'Gestionare Fermieri',
   description: 'Vizualizați și gestionați conturile agricultorilor în cadrul platformei AgriCad.'
 };
 
@@ -37,8 +33,8 @@ export default function AdminFarmersPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {/* Render the dynamically loaded FarmerTable */}
-          <DynamicFarmerTable readOnly={true} actorRole="admin" />
+          {/* Render the new Client Component wrapper */}
+          <ClientFarmerTableWrapper readOnly={true} actorRole="admin" />
         </CardContent>
       </Card>
     </div>
