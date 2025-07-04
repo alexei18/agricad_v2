@@ -1,8 +1,9 @@
-
+'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { History } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { use } from 'react';
 
 const renderLoadingSkeleton = () => (
   <div className="space-y-3 p-4">

@@ -7,8 +7,8 @@ import dynamic from 'next/dynamic';
 import { LogTableSkeleton } from './loading';
 
 const DynamicClientLogsViewer = dynamic(() => import('./components/client-logs-viewer').then(mod => mod.ClientLogsViewer), {
-    ssr: false,
-    loading: () => <LogTableSkeleton />,
+  ssr: false,
+  loading: () => <LogTableSkeleton />, // This now correctly references the named export
 });
 
 export const metadata: Metadata = {
