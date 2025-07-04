@@ -1,5 +1,5 @@
 // src/app/admin/mayors/page.tsx
-'use client';
+
 
 import * as React from 'react';
 import { Suspense } from 'react';
