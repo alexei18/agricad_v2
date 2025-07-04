@@ -1,15 +1,18 @@
 // src/app/admin/logs/page.tsx
-// NO 'use client' directive here - it must be a Server Component
+// NO 'use client' directive here
 
-import dynamic from 'next/dynamic';
+// Rename the import to avoid conflict with the export const dynamic
+import nextDynamic from 'next/dynamic'; // <-- CHANGED THIS LINE
+
 import type { Metadata } from 'next';
 
-// IMPORTANT: For this test, we are completely removing the import of LogTableSkeleton
-// from './loading' and replacing it with a simple string or basic HTML element.
-// This rules out *any* possible implicit client-side behavior from the skeleton.
-const DynamicClientLogsViewer = dynamic(() => import('./components/client-logs-viewer').then(mod => mod.ClientLogsViewer), {
+// Force this page to always be rendered dynamically on the server
+// This bypasses static generation issues that might conflict with ssr: false
+export const dynamic = 'force-dynamic'; // This is correct as a string
+
+const DynamicClientLogsViewer = nextDynamic(() => import('./components/client-logs-viewer').then(mod => mod.ClientLogsViewer), {
     ssr: false,
-    loading: () => <p>Loading logs content...</p>, // Using a simple p tag for absolute certainty
+    loading: () => <p>Loading logs content...</p>,
 });
 
 export const metadata: Metadata = {
@@ -20,9 +23,8 @@ export const metadata: Metadata = {
 export default function AdminLogsPage() {
     return (
         <main>
-            <h1>Admin Logs (Server Component)</h1>
-            <p>This is a test page to isolate the dynamic import issue.</p>
-            {/* The problematic dynamic import */}
+            <h1>Admin Logs (Server Component - Force Dynamic)</h1>
+            <p>This is a test page with dynamic rendering enabled.</p>
             <DynamicClientLogsViewer />
         </main>
     );
