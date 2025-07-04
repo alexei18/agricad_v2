@@ -142,12 +142,13 @@ export function FarmerTable({
   actorId: initialActorId,
   actorRole,
   villageFilter,
-  readOnly = false,
-}: { // Aceasta este definiția tipului de props
+  readOnly = false, // Este OK să ai o valoare default aici
+}: { // <--- AICI ESTE LOCUL UNDE TREBUIE SĂ ADUGI readOnly
   refreshKey?: number;
   actorId?: string;
   actorRole: 'admin' | 'mayor';
   villageFilter?: string | null;
+  readOnly?: boolean; // <--- ADAUGĂ ACEASTĂ LINIE AICI
 }) {
   const { data: session } = useSession();
   const typedUser = session?.user as SessionUser | undefined;
