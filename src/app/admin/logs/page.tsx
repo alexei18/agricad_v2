@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getAssignmentLogs, getUserActionLogs, LogEntry } from '@/services/logs';
-// Button și Input eliminate că nu sunt folosite pentru filtrare momentan
+import { Suspense } from 'react';
 
 type LogType = 'assignment' | 'userAction';
 
