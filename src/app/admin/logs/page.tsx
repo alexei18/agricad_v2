@@ -1,14 +1,15 @@
 // src/app/admin/logs/page.tsx
-import type { Metadata } from 'next';
-// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'; // <--- COMMENT OUT
-import { History } from 'lucide-react';
+// NO 'use client' directive here - it must be a Server Component
+
 import dynamic from 'next/dynamic';
+import type { Metadata } from 'next';
 
-import { LogTableSkeleton } from './loading';
-
+// IMPORTANT: For this test, we are completely removing the import of LogTableSkeleton
+// from './loading' and replacing it with a simple string or basic HTML element.
+// This rules out *any* possible implicit client-side behavior from the skeleton.
 const DynamicClientLogsViewer = dynamic(() => import('./components/client-logs-viewer').then(mod => mod.ClientLogsViewer), {
-  ssr: false,
-  loading: () => <LogTableSkeleton />, // This now correctly references the named export
+    ssr: false,
+    loading: () => <p>Loading logs content...</p>, // Using a simple p tag for absolute certainty
 });
 
 export const metadata: Metadata = {
@@ -17,26 +18,12 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLogsPage() {
-    const t = {
-        title: "Jurnale sistem",
-        description: "Vizualizați evenimentele de sistem înregistrate, inclusiv atribuirile de parcele și acțiunile utilizatorilor."
-    };
-
     return (
-        <div className="flex-1 p-4 sm:p-6 space-y-6">
-            {/* Replace with basic divs for testing */}
-            <div>
-                <div>
-                    <History className="h-5 w-5" />
-                    {t.title}
-                </div>
-                <div>
-                    {t.description}
-                </div>
-            </div>
-            <div>
-                <DynamicClientLogsViewer />
-            </div>
-        </div>
+        <main>
+            <h1>Admin Logs (Server Component)</h1>
+            <p>This is a test page to isolate the dynamic import issue.</p>
+            {/* The problematic dynamic import */}
+            <DynamicClientLogsViewer />
+        </main>
     );
 }
