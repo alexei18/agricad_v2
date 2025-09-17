@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { getParcelsByOwner, getParcelsByCultivator, Parcel } from '@/services/parcels'; // Pentru a determina satele
 
 // Tip pentru user-ul din sesiune
@@ -59,7 +59,7 @@ export function FarmerLayoutClient({ children }: { children: React.ReactNode }) 
     const { data: session, status: sessionStatus } = useSession();
     const router = useRouter();
     const pathname = usePathname();
-    const searchParams = useSearchParams();
+    // const searchParams = useSearchParams(); // temporarily disabled for build
 
     const [selectedVillageFarmContext, setSelectedVillageFarmContext] = useState<string | null>(undefined as any);
     const [operationalVillages, setOperationalVillages] = useState<string[]>([]);
@@ -80,7 +80,8 @@ export function FarmerLayoutClient({ children }: { children: React.ReactNode }) 
                     const uniqueVillages = Array.from(new Set(allUserParcels.map(p => p.village))).sort();
                     setOperationalVillages(uniqueVillages);
 
-                    const queryParamVillage = searchParams.get('village_farm_context');
+                    // const queryParamVillage = searchParams.get('village_farm_context'); // temporarily disabled
+                    const queryParamVillage = null;
                     if (queryParamVillage) {
                         if (queryParamVillage === 'ALL_VILLAGES_FARM') {
                             setSelectedVillageFarmContext(null);
@@ -105,7 +106,7 @@ export function FarmerLayoutClient({ children }: { children: React.ReactNode }) 
             }
         };
         fetchFarmerOperationalVillages();
-    }, [sessionStatus, typedUser?.id, searchParams]); // Scoatem `searchParams` din dependențe pentru a evita bucle infinite la `router.replace`
+    }, [sessionStatus, typedUser?.id]); // removed searchParams dependency
 
     useEffect(() => {
         if (isFarmContextLoading) return;
@@ -123,7 +124,8 @@ export function FarmerLayoutClient({ children }: { children: React.ReactNode }) 
 
         setHeaderTitle(t.headerTitleTemplate.replace('{villageContext}', titleVillagePart));
 
-        const currentParams = new URLSearchParams(Array.from(searchParams.entries()));
+        // const currentParams = new URLSearchParams(Array.from(searchParams.entries())); // temporarily disabled
+        const currentParams = new URLSearchParams();
         const newVillageQueryValue = selectedVillageFarmContext === null ? 'ALL_VILLAGES_FARM' : selectedVillageFarmContext;
 
         if (newVillageQueryValue !== undefined && currentParams.get('village_farm_context') !== newVillageQueryValue) {
@@ -135,11 +137,12 @@ export function FarmerLayoutClient({ children }: { children: React.ReactNode }) 
 
             const newSearch = currentParams.toString();
             // Previne actualizarea URL dacă nu există schimbări reale sau e prima randare
-            if (newSearch !== searchParams.toString() && (pathname.startsWith("/farmer/dashboard") || pathname.startsWith("/farmer/map") || pathname.startsWith("/farmer/stats") || pathname.startsWith("/farmer/export"))) {
+            // temporarily disabled: if (newSearch !== searchParams.toString() && ...)
+            if (pathname.startsWith("/farmer/dashboard") || pathname.startsWith("/farmer/map") || pathname.startsWith("/farmer/stats") || pathname.startsWith("/farmer/export")) {
                 router.replace(`${pathname}?${newSearch}`, { scroll: false });
             }
         }
-    }, [selectedVillageFarmContext, operationalVillages, isFarmContextLoading, sessionStatus, router, pathname, searchParams]);
+    }, [selectedVillageFarmContext, operationalVillages, isFarmContextLoading, sessionStatus, router, pathname]); // removed searchParams
 
 
     const handleSetSelectedVillageFarmContext = (village: string | null) => {

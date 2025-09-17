@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChartHorizontal, AlertCircle, PieChart, Users, MapPin } from 'lucide-react'; // Loader2 a fost eliminat că nu e folosit direct aici

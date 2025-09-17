@@ -1,6 +1,8 @@
 // src/app/farmer/dashboard/page.tsx
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

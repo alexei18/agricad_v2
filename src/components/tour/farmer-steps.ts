@@ -1,8 +1,8 @@
 
-import { Step } from 'react-joyride';
+import { StepType } from '@reactour/tour';
 
 // Hardcoded Romanian strings for steps
-export const farmerSteps: Step[] = [
+export const farmerSteps: StepType[] = [
   {
     target: 'body',
     content: 'Aici puteți vizualiza parcelele atribuite și statisticile satului.',

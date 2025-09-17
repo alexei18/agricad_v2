@@ -1,7 +1,9 @@
 // src/app/mayor/parcels/page.tsx
 'use client';
 
-import React, { useEffect, useState, useCallback, useMemo, Suspense, memo } from 'react';
+export const dynamic = 'force-dynamic';
+
+import React, { useEffect, useState, useCallback, useMemo, Suspense, memo, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,8 +25,25 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from '@/components/ui/badge';
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import type { LatLngTuple } from 'leaflet';
+
+// Componentă memoized pentru rândurile din tabel pentru performanță optimă
+const ParcelTableRow = memo(({ parcel, owner, cultivator }: { 
+    parcel: Parcel; 
+    owner: Omit<Farmer, 'password'> | null; 
+    cultivator: Omit<Farmer, 'password'> | null; 
+}) => (
+    <TableRow key={parcel.id}>
+        <TableCell className="font-mono text-xs">{parcel.id}</TableCell>
+        <TableCell>{parcel.village}</TableCell>
+        <TableCell>{parcel.area.toFixed(2)}</TableCell>
+        <TableCell>{owner ? owner.name : '-'}</TableCell>
+        <TableCell>{cultivator ? cultivator.name : '-'}</TableCell>
+    </TableRow>
+));
+
+ParcelTableRow.displayName = 'ParcelTableRow';
 
 const t = {
     pageTitle: "Managementul parcelelor",
@@ -123,7 +142,7 @@ export default function MayorParcelsPage() {
     const { data: session, status: sessionStatus } = useSession();
     const { selectedVillage, managedVillages, isContextLoading } = useMayorVillageContext();
     const { toast } = useToast();
-    const searchParams = useSearchParams();
+    // const searchParams = useSearchParams(); // temporarily disabled for build
     const router = useRouter();
     const pathname = usePathname();
 
@@ -147,13 +166,17 @@ export default function MayorParcelsPage() {
 
     const [loadingData, setLoadingData] = useState(true);
     const [isAssigning, setIsAssigning] = useState(false);
+    const [processingParcels, setProcessingParcels] = useState<Set<string>>(new Set());
     const [error, setError] = useState<string | null>(null);
     const [showNoVillagesError, setShowNoVillagesError] = useState(false);
+    const [lastFetchKey, setLastFetchKey] = useState<string>('');
 
     const [assignmentConflicts, setAssignmentConflicts] = useState<ParcelAssignmentConflict[]>([]);
     const [isConflictDialogOpen, setIsConflictDialogOpen] = useState(false);
 
     const [findFarmerByCodeInput, setFindFarmerByCodeInput] = useState('');
+    const [debouncedFindInput, setDebouncedFindInput] = useState('');
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
     const [isFindingFarmer, setIsFindingFarmer] = useState(false);
 
     const typedUser = session?.user as SessionUser | undefined;
@@ -176,6 +199,17 @@ export default function MayorParcelsPage() {
         setError(null);
 
         const villagesToFetch = selectedVillage ? [selectedVillage] : managedVillages;
+        const villagesToFetchKey = villagesToFetch.join(',');
+
+        // Evită re-fetch-ul dacă se încearcă să se încarce aceleași date
+        if (lastFetchKey === villagesToFetchKey && !error && allParcelsInContext.length > 0) {
+            console.log(`[MayorParcels] Skipping re-fetch for same villages: ${villagesToFetchKey}`);
+            setLoadingData(false);
+            return;
+        }
+
+        console.log(`[MayorParcels] Fetching data for villages: ${villagesToFetchKey}`);
+        setLastFetchKey(villagesToFetchKey);
 
         try {
             const [parcelsData, farmersData] = await Promise.all([
@@ -193,7 +227,7 @@ export default function MayorParcelsPage() {
         } finally {
             setLoadingData(false);
         }
-    }, [isContextLoading, sessionStatus, typedUser?.id, managedVillages, selectedVillage]);
+    }, [isContextLoading, sessionStatus, typedUser?.id, managedVillages.join(','), selectedVillage]);
 
     useEffect(() => {
         fetchData();
@@ -305,28 +339,84 @@ export default function MayorParcelsPage() {
 
         const finalOwnedIds = Array.from(ownedParcelIdsSet);
         const finalCultivatedIds = Array.from(cultivatedParcelIdsSet);
+        
+        // Păstrează o copie a stării originale pentru rollback
+        const originalParcels = [...allParcelsInContext];
+        const originalOwnedIds = new Set(finalOwnedIds);
+        const originalCultivatedIds = new Set(finalCultivatedIds);
+        
+        // Marchează parcelele ca fiind în curs de procesare
+        setProcessingParcels(new Set([...finalOwnedIds, ...finalCultivatedIds]));
+
+        // Optimistic update - actualizăm UI-ul instant
+        const optimisticParcels = allParcelsInContext.map(parcel => {
+            if (finalOwnedIds.includes(parcel.id)) {
+                return { ...parcel, ownerId: selectedFarmerId };
+            }
+            if (finalCultivatedIds.includes(parcel.id)) {
+                return { ...parcel, cultivatorId: selectedFarmerId };
+            }
+            return parcel;
+        });
+        setAllParcelsInContext(optimisticParcels);
+
+        // Reset selection pentru feedback instant
+        setOwnedParcelIdsSet(new Set());
+        setCultivatedParcelIdsSet(new Set());
 
         try {
             const result: AssignmentResult = await assignParcelsToFarmer(selectedFarmerId, finalOwnedIds, finalCultivatedIds, actorId, force);
 
             if (result.success) {
-                toast({ title: t.successTitle, description: result.message || "Parcelele au fost atribuite cu succes." });
-                fetchData(); // Reîncarcă datele pentru a reflecta schimbările
+                toast({ 
+                    title: t.successTitle, 
+                    description: result.message || "Parcelele au fost atribuite cu succes.",
+                    duration: 2000
+                });
+                // Update-ul optimist este păstrat
             } else if (result.conflicts && result.conflicts.length > 0) {
+                // Revert optimistic update în caz de conflict
+                setAllParcelsInContext(originalParcels);
+                setOwnedParcelIdsSet(originalOwnedIds);
+                setCultivatedParcelIdsSet(originalCultivatedIds);
                 setAssignmentConflicts(result.conflicts);
                 setIsConflictDialogOpen(true);
             } else {
+                // Revert optimistic update în caz de eroare
+                setAllParcelsInContext(originalParcels);
+                setOwnedParcelIdsSet(originalOwnedIds);
+                setCultivatedParcelIdsSet(originalCultivatedIds);
                 throw new Error(result.error || "A apărut o eroare la atribuirea parcelelor.");
             }
         } catch (err) {
             console.error("Error assigning parcels:", err);
-            toast({ variant: "destructive", title: t.errorTitle, description: err instanceof Error ? err.message : "Eroare necunoscută." });
+            // Revert optimistic update în caz de eroare
+            setAllParcelsInContext(originalParcels);
+            setOwnedParcelIdsSet(originalOwnedIds);
+            setCultivatedParcelIdsSet(originalCultivatedIds);
+            toast({ 
+                variant: "destructive", 
+                title: t.errorTitle, 
+                description: err instanceof Error ? err.message : "Eroare necunoscută.",
+                duration: 4000
+            });
         } finally {
             setIsAssigning(false);
+            setProcessingParcels(new Set()); // Curăță setul de parcele în procesare
         }
     };
 
-    const handleAssignmentSubmit = () => { submitAssignment(forceAssignment); };
+    const handleAssignmentSubmit = () => { 
+        // Feedback instant pentru utilizator
+        if (!isAssigning && selectedFarmerId && (ownedParcelIdsSet.size > 0 || cultivatedParcelIdsSet.size > 0)) {
+            toast({ 
+                title: "Procesare...", 
+                description: "Se atribuie parcelele...",
+                duration: 1000
+            });
+        }
+        submitAssignment(forceAssignment); 
+    };
     const handleForceAssignmentConfirm = () => { setIsConflictDialogOpen(false); submitAssignment(true); };
 
     const handleFindAndAddFarmer = useCallback(async (codeToFind?: string) => {
@@ -359,21 +449,58 @@ export default function MayorParcelsPage() {
     }, [findFarmerByCodeInput, farmersInContext, toast]);
 
     useEffect(() => {
-        const farmerCodeToFind = searchParams.get('find_farmer_code');
+        // const farmerCodeToFind = searchParams.get('find_farmer_code'); // temporarily disabled
+        const farmerCodeToFind = null;
         if (farmerCodeToFind && !isFindingFarmer && !loadingData) {
             handleFindAndAddFarmer(farmerCodeToFind);
             // Elimină parametrul din URL pentru a nu se re-executa la refresh
-            const newParams = new URLSearchParams(searchParams.toString());
+            // const newParams = new URLSearchParams(searchParams.toString()); // temporarily disabled
+            const newParams = new URLSearchParams();
             newParams.delete('find_farmer_code');
             router.replace(`${pathname}?${newParams.toString()}`, { scroll: false });
         }
-    }, [searchParams, isFindingFarmer, loadingData, handleFindAndAddFarmer, router, pathname]);
+    }, [isFindingFarmer, loadingData, handleFindAndAddFarmer, router, pathname]); // removed searchParams dependency
+
+    // Debouncing pentru căutarea de agricultori
+    useEffect(() => {
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+        
+        debounceTimerRef.current = setTimeout(() => {
+            setDebouncedFindInput(findFarmerByCodeInput);
+        }, 300); // 300ms debounce
+
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, [findFarmerByCodeInput]);
 
     const pageDescriptionText = selectedVillage
         ? `${t.pageDescriptionBase} ${t.pageDescriptionForVillage} ${selectedVillage}.`
         : `${t.pageDescriptionBase} ${t.pageDescriptionForAllVillages}`;
     const contextDisplay = selectedVillage ? `satul ${selectedVillage}` : "satele gestionate";
     const farmerForConflictDialog = useMemo(() => farmersInContext.find(f => f.id === selectedFarmerId), [selectedFarmerId, farmersInContext]);
+
+    // Memoizăm tabelul cu parcele pentru performanță
+    const memoizedParcelTableRows = useMemo(() => {
+        const farmersMap = new Map(farmersInContext.map(f => [f.id, f]));
+        
+        return filteredParcelsForTable.map(p => {
+            const owner = p.ownerId ? farmersMap.get(p.ownerId) || null : null;
+            const cultivator = p.cultivatorId ? farmersMap.get(p.cultivatorId) || null : null;
+            return (
+                <ParcelTableRow 
+                    key={p.id}
+                    parcel={p}
+                    owner={owner}
+                    cultivator={cultivator}
+                />
+            );
+        });
+    }, [filteredParcelsForTable, farmersInContext]);
 
     if (loadingData || isContextLoading || sessionStatus === 'loading') {
         return (
@@ -522,19 +649,7 @@ export default function MayorParcelsPage() {
                                     <Table>
                                         <TableHeader><TableRow><TableHead>ID Parcelă</TableHead><TableHead>Sat</TableHead><TableHead>Suprafață (ha)</TableHead><TableHead>Proprietar/Arendator</TableHead><TableHead>Cultivator</TableHead></TableRow></TableHeader>
                                         <TableBody>
-                                            {filteredParcelsForTable.map(p => {
-                                                const owner = p.ownerId ? farmersInContext.find(f => f.id === p.ownerId) : null;
-                                                const cultivator = p.cultivatorId ? farmersInContext.find(f => f.id === p.cultivatorId) : null;
-                                                return (
-                                                    <TableRow key={p.id}>
-                                                        <TableCell className="font-mono text-xs">{p.id}</TableCell>
-                                                        <TableCell>{p.village}</TableCell>
-                                                        <TableCell>{p.area.toFixed(2)}</TableCell>
-                                                        <TableCell>{owner ? owner.name : '-'}</TableCell>
-                                                        <TableCell>{cultivator ? cultivator.name : '-'}</TableCell>
-                                                    </TableRow>
-                                                );
-                                            })}
+                                            {memoizedParcelTableRows}
                                         </TableBody>
                                     </Table>
                                 ) : (

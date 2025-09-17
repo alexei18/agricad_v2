@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 // Tip pentru user-ul din sesiune (ar trebui definit global în next-auth.d.ts)
 type SessionUser = { id?: string; name?: string | null; email?: string | null; image?: string | null; role?: string; villages?: string[] };
@@ -59,7 +59,7 @@ export function MayorLayoutClient({ children }: { children: React.ReactNode }) {
     const { data: session, status: sessionStatus } = useSession();
     const router = useRouter();
     const pathname = usePathname();
-    const searchParams = useSearchParams(); // Hook pentru a citi query params
+    // const searchParams = useSearchParams(); // Hook pentru a citi query params - temporarily disabled for build
 
     const [selectedVillageContext, setSelectedVillageContext] = useState<string | null>(undefined as any); // Inițial undefined pentru a distinge de null (Toate satele)
     const [managedVillages, setManagedVillages] = useState<string[]>([]);
@@ -74,7 +74,8 @@ export function MayorLayoutClient({ children }: { children: React.ReactNode }) {
             console.log("[MayorLayoutClient] Sate primar din sesiune:", mayorVillagesFromSession);
             setManagedVillages(mayorVillagesFromSession.sort());
 
-            const queryParamVillage = searchParams.get('village_context');
+            // const queryParamVillage = searchParams.get('village_context'); // temporarily disabled
+            const queryParamVillage = null;
             console.log("[MayorLayoutClient] Query param 'village_context':", queryParamVillage);
 
             if (queryParamVillage) {
@@ -83,17 +84,27 @@ export function MayorLayoutClient({ children }: { children: React.ReactNode }) {
                 } else if (mayorVillagesFromSession.includes(queryParamVillage)) {
                     setSelectedVillageContext(queryParamVillage);
                 } else { // Query param invalid, default
-                    setSelectedVillageContext(null); // Default la "Toate satele"
+                    // Pentru primarii cu un singur sat, selectează automat acel sat
+                    if (mayorVillagesFromSession.length === 1) {
+                        setSelectedVillageContext(mayorVillagesFromSession[0]);
+                    } else {
+                        setSelectedVillageContext(null); // Default la "Toate satele" doar pentru primarii cu multiple sate
+                    }
                 }
             } else { // Niciun query param, default
-                setSelectedVillageContext(null); // Default la "Toate satele"
+                // Pentru primarii cu un singur sat, selectează automat acel sat
+                if (mayorVillagesFromSession.length === 1) {
+                    setSelectedVillageContext(mayorVillagesFromSession[0]);
+                } else {
+                    setSelectedVillageContext(null); // Default la "Toate satele" doar pentru primarii cu multiple sate
+                }
             }
             setIsContextLoading(false);
         } else if (sessionStatus !== 'loading') {
             // Sesiune neautentificată sau fără user, sau încă în loading
             setIsContextLoading(false); // Finalizează încărcarea contextului dacă sesiunea nu e ok
         }
-    }, [session, sessionStatus, searchParams]);
+    }, [session, sessionStatus]); // removed searchParams dependency
 
     useEffect(() => {
         if (isContextLoading) return; // Nu actualiza titlul sau URL-ul dacă contextul încă se încarcă
@@ -112,7 +123,8 @@ export function MayorLayoutClient({ children }: { children: React.ReactNode }) {
         setHeaderTitle(t.headerTitleTemplate.replace('{villageContext}', titleVillagePart));
 
         // Actualizează query parameter
-        const currentParams = new URLSearchParams(Array.from(searchParams.entries())); // Creează din iterabil
+        // const currentParams = new URLSearchParams(Array.from(searchParams.entries())); // temporarily disabled
+        const currentParams = new URLSearchParams();
         const newVillageQueryValue = selectedVillageContext === null ? 'ALL_VILLAGES' : selectedVillageContext;
 
         if (newVillageQueryValue !== undefined && currentParams.get('village_context') !== newVillageQueryValue) {
@@ -130,7 +142,7 @@ export function MayorLayoutClient({ children }: { children: React.ReactNode }) {
                 router.replace(`${pathname}?${newSearch}`, { scroll: false });
             }
         }
-    }, [selectedVillageContext, managedVillages, isContextLoading, sessionStatus, router, pathname, searchParams]);
+    }, [selectedVillageContext, managedVillages, isContextLoading, sessionStatus, router, pathname]); // removed searchParams
 
 
     const handleSetSelectedVillageContext = (village: string | null) => {

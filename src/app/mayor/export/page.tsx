@@ -1,6 +1,8 @@
 // src/app/mayor/export/page.tsx
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react'; // Adăugat useMemo
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

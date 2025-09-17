@@ -173,8 +173,8 @@ export const ParcelMap: React.FC<ParcelMapProps> = ({
 
                         const centroidFeature = turfCentroid(unionFeature); // turfCentroid așteaptă un Feature
                         const centroidCoords = centroidFeature.geometry.coordinates as [number, number]; // [lng, lat]
-                        const turfBbox = turfBbox(unionFeature); // turfBbox așteaptă un Feature
-                        const leafletBounds = L.latLngBounds([[turfBbox[1], turfBbox[0]], [turfBbox[3], turfBbox[2]]]);
+                        const boundingBox = turfBbox(unionFeature); // turfBbox așteaptă un Feature
+                        const leafletBounds = L.latLngBounds([[boundingBox[1], boundingBox[0]], [boundingBox[3], boundingBox[2]]]);
 
                         blocks.push({
                             id: prefix, geometry: unionFeature,

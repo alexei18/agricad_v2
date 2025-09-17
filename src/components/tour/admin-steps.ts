@@ -1,14 +1,11 @@
 
-import { Step } from 'react-joyride';
+import { StepType } from '@reactour/tour';
 
 // Hardcoded Romanian strings for steps
-export const adminSteps: Step[] = [
+export const adminSteps: StepType[] = [
   {
-    target: 'body',
+    selector: 'body',
     content: 'Acesta este panoul central de control. Haideți să facem un tur rapid.',
-    title: 'Bun venit în Panoul Administratorului!',
-    placement: 'center',
-    disableBeacon: true,
   },
   {
     target: '[data-sidebar="sidebar"]', // Target the sidebar div

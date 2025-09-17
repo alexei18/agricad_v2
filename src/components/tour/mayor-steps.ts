@@ -1,11 +1,11 @@
 
-import { Step } from 'react-joyride';
+import { StepType } from '@reactour/tour';
 
 // TODO: Consider fetching village name dynamically if needed for content
 const placeholderVillage = "Satul Meu"; // Placeholder
 
 // Function to generate steps with potentially dynamic village name
-export const getMayorSteps = (villageName?: string): Step[] => {
+export const getMayorSteps = (villageName?: string): StepType[] => {
   const currentVillage = villageName || placeholderVillage;
 
   return [

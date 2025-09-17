@@ -1,22 +1,27 @@
 // src/components/layout/AdminLayoutClient.tsx
 'use client'; // Aceasta este o Componentă Client!
 
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-// ... alte importuri (ex: pentru Sidebar, Header etc.)
+import { useRouter, usePathname } from 'next/navigation';
+import { Suspense } from 'react';
 
-export function AdminLayoutClient({ children }: { children: React.ReactNode }) {
+function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
-    const searchParams = useSearchParams();
-
-    // Folosește router, pathname, searchParams aici în logica ta de UI
-    // De exemplu, pentru a evidenția link-ul activ din sidebar sau pentru redirecționări
+    // Removed useSearchParams for now to fix build issue
 
     return (
         <div className="flex min-h-screen">
             {/* Aici ar veni componenta ta de sidebar (client-side) */}
             {/* <AdminSidebar /> */}
-                {children}
+            {children}
         </div>
+    );
+}
+
+export function AdminLayoutClient({ children }: { children: React.ReactNode }) {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <AdminLayoutContent>{children}</AdminLayoutContent>
+        </Suspense>
     );
 }

@@ -1,6 +1,8 @@
 // src/app/mayor/farmers/page.tsx
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';

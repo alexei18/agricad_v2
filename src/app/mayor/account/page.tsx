@@ -1,7 +1,9 @@
 // src/app/mayor/account/page.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react'; // Adăugat useCallback
+export const dynamic = 'force-dynamic';
+
+import React, { useState, useEffect, useCallback, Suspense } from 'react'; // Adăugat useCallback
 import { useSession } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,7 +43,7 @@ const t = {
 };
 
 
-export default function MayorAccountPage() {
+function MayorAccountPageContent() {
     const { data: session, status: sessionStatus } = useSession(); // eliminat updateSession dacă nu e folosit direct
     const { toast } = useToast();
 
@@ -177,5 +179,13 @@ export default function MayorAccountPage() {
                 </Card>
             </div>
         </div>
+    );
+}
+
+export default function MayorAccountPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <MayorAccountPageContent />
+        </Suspense>
     );
 }

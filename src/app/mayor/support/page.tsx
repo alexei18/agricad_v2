@@ -1,6 +1,8 @@
 // src/app/mayor/support/page.tsx
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Phone, HelpCircle, MessageSquare, Info } from 'lucide-react';

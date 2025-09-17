@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Settings, Save, RotateCcw, Trash2, DatabaseBackup, ShieldCheck, UserCog, Tractor, AlertTriangle, History, Users } from 'lucide-react';
@@ -22,7 +24,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useTour } from '@/components/tour/tour-provider';
+// import { useTour } from '@/components/tour/tour-provider'; // temporarily disabled for build
 
 const currentAdminId = "Admin_System";
 
@@ -94,7 +96,8 @@ export default function AdminSettingsPage() {
     startAdminTourButton: "Pornește turul admin"
   };
 
-  const { startTour } = useTour();
+  // const { startTour } = useTour(); // temporarily disabled for build
+  const startTour = () => console.log('Tour temporarily disabled');
   const [siteName, setSiteName] = React.useState('');
   const [initialSiteName, setInitialSiteName] = React.useState('');
   const [loading, setLoading] = React.useState(true);
