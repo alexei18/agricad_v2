@@ -10,7 +10,7 @@ export default withAuth(
     console.log(`\n[MW] Request Path: ${pathname}`);
     // console.log(`[MW] Token:`, JSON.stringify(token, null, 2)); // Poate fi prea verbos pentru producție
 
-    const publicPaths = ['/auth/login', '/auth/error']; // Pagini de autentificare
+    const publicPaths = ['/auth/login', '/auth/error', '/lading']; // Pagini de autentificare
     const changePasswordPath = '/auth/change-initial-password';
 
     // 1. Dacă utilizatorul este pe o pagină de schimbare a parolei, permite accesul
@@ -73,11 +73,9 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ req, token }) => {
-        // Dacă token există, utilizatorul este considerat "autorizat" pentru a intra în logica middleware-ului principal.
-        // Middleware-ul principal decide apoi dacă utilizatorul are acces la *acea rută specifică*.
-        const isAuth = !!token;
-        // console.log(`[MW Authorized CB] Path: ${req.nextUrl.pathname}, Token: ${JSON.stringify(token, null, 2)}, IsAuth: ${isAuth}`);
-        return isAuth;
+        const pathname = req.nextUrl.pathname;
+        if (pathname === '/lading' || pathname.startsWith('/lading/')) return true;
+        return !!token;
       }
     },
     pages: {
