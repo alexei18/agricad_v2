@@ -94,7 +94,7 @@ export const config = {
      * - favicon.ico (favicon file)
      * - Orice fișiere din /public (ex: /images/logo.png)
      */
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|images/).*)', // S-a scos /api/ din excludere generală
+    '/((?!api/auth|_next/static|_next/image|favicon.ico|img/).*)', // S-a scos /api/ din excludere generală
     '/', // Asigură-te că și rădăcina este acoperită
   ],
 };

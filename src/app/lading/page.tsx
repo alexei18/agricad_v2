@@ -184,7 +184,7 @@ export default function LandingPage() {
       title: 'Hartă interactivă detaliată',
       description: 'Navigați, identificați și gestionați parcelele cu precizie cadastrală. Suprapuneți straturi de informații și accesați detalii complete.',
       icon: <MapPin className="w-7 h-7" />,
-      image: '/img/Screenshot 2025-05-15 184744.png',
+      image: '/img/Screenshot%202025-05-15%20184744.png',
       span: 'sm:col-span-1 lg:col-span-2',
     },
     {
@@ -419,7 +419,7 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <img
-                    src="/img/Screenshot 2025-05-15 184824.png"
+                    src="/img/Screenshot%202025-05-15%20184824.png"
                     alt="Hartă interactivă AgriCad Moldova"
                     className="w-full object-cover object-top"
                     style={{ maxHeight: '300px' }}
